@@ -27,18 +27,18 @@ const rideSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    status: {
+    NearestStation: {
+        type: String,
+        required: true
+    },
+    Status: {
         type: String,
         enum: ["pending", "accepted", "ongoing", "completed", "cancelled"],
         default: "pending"
-    },
-    fare: {
-        type: Number,
-        default: 0
     }
-},
-    { timestamps: true }
+}, 
+    { timestamps: true } 
 );
-
+ 
 const Ride = mongoose.model("Ride", rideSchema);
 export default Ride

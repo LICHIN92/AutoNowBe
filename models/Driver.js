@@ -31,7 +31,8 @@ const driverSchema = new mongoose.Schema({
 
     licenseNumber: {
         type: String,
-        required: true
+        // required: true
+        unique: true
     },
 
     location: {
@@ -54,8 +55,13 @@ const driverSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-        profileImage: {
-        type: String
+    profileImage: {
+        type: String,
+        default: ''
+    },
+    stand: {
+        type: String,
+        default:''
     }
 
 }, { timestamps: true });

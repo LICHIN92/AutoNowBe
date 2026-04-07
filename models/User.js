@@ -15,9 +15,9 @@ const userSchema = new mongoose.Schema({
         required: true,
     }, 
     Role: {
-        type: String,
-        enum: ["user", "driver", "admin"],
-        default: "user"
+        type: Boolean,
+        // enum: ["user", "driver", "admin"],
+        default: false
     }
 },
     {

@@ -4,10 +4,10 @@ import Stand from "../models/stand.js";
 const booking = async (req, res) => {
     console.log(req.body);
 
-    const { pickup, drop, date, time, userId } = req.body
+    const { pickup, drop, date, time, userId,nearStand } = req.body
     try {
         const data = await new Ride({
-            pickup: pickup, drop: drop, userId: userId, time: time, date: date
+            pickup: pickup, drop: drop, userId: userId, time: time, date: date,NearestStation:nearStand
         }).save()
         console.log(data)
         return res.status(200).json(`Thank you for choosing AutoNow! Have a safe journey!`)
@@ -17,7 +17,7 @@ const booking = async (req, res) => {
 
         return res.status(500).json(`internal server error`)
     }
-}
+} 
 
 const getStand=async(req,res)=>{
     try {

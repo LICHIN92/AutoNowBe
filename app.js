@@ -15,7 +15,7 @@ app.use(express.json())
 app.use('/user', userRouter)
 app.use('/driver', driverRouter)
 app.use('/ride',RideRouter)
-app.use('/stand',adminRouter)
+app.use('/admin',adminRouter)
 app.listen(process.env.port, () => {
     console.log(`app is running at ${process.env.port}`);
 
