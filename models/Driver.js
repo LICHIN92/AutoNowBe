@@ -40,9 +40,9 @@ const driverSchema = new mongoose.Schema({
         lng: Number
     },
 
-    status: {
+    Status: {
         type: String,
-        enum: ["offline", "online", "busy"],
+        enum: ["offline", "online", "busy","onRide"],
         default: "offline"
     },
 

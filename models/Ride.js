@@ -3,14 +3,14 @@ import mongoose from "mongoose";
 const rideSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Types.ObjectId,
-        ref: 'user',
+        ref: 'User',
         required: true
     },
     driverId: {
         type: mongoose.Types.ObjectId,
-        ref: 'Driver',
+        ref: "Driver",
         // required: true
-    },
+    }, 
     pickup: {
         type: String,
         required: true

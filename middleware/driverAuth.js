@@ -18,14 +18,17 @@ const driverAuth = async (req, res, next) => {
     }
     try {
         const decode = Jwt.verify(token, process.env.jwt_secret_key)
-        console.log(decode);
+        // console.log(decode);
         const id = decode.id
         const driver = await Driver.findById(id)
-        console.log(driver);
+        // console.log(driver);
+        console.log('ohhh')
         req.id = driver._id
+        req.driver = driver
         next()
     } catch (error) {
-
+        console.log(error);
+        return res.status(401).json('Invalid or expired token');
     }
 }
 

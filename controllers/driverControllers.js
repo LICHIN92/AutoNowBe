@@ -47,10 +47,14 @@ const login = async (req, res) => {
         if (!ismath) {
             return res.status(400).json(`Invalid Password`);
         }
+        const update = await Driver.findByIdAndUpdate(findData._id,
+            { Status: "online" }, { returnDocument: "after" })
+        console.log('updatyed', update);
 
         const payload = {
             Name: findData.Name, Mobile: findData.Mobile, stand: findData.stand, pic: findData.profileImage,
-            vehicleNumber: findData.vehicleNumber, id: findData._id, Verifed: findData.isVerified
+            vehicleNumber: findData.vehicleNumber, id: findData._id, Verifed: findData.isVerified,
+            Status: update.Status
         }
 
 
@@ -64,11 +68,17 @@ const login = async (req, res) => {
 
 const NofBookOnMyOwnStation = async (req, res) => {
     console.log('NofBookOnMyOwnStation');
-
+    console.log(req.id)
+    console.log(req.query)
     try {
-        const data = await (await Ride.find()).length
+        const isVerified = await Driver.findById(req.id)
+        console.log(isVerified.isVerified);
+        // if (!isVerified.isVerified) {
+        //     return res.status(400).json('You are not verified \nPlease contact admin');
+        // }
+        const data = (await Ride.find({ NearestStation: isVerified.stand, Status: "pending" })).length
         console.log(data);
-
+        return res.status(200).json(data)
     } catch (error) {
         console.log(error)
         return res.status(500).json(`internal server error`)
@@ -115,4 +125,131 @@ const AddProfile = async (req, res) => {
         res.status(500).json("Error compressing image")
     }
 }
-export { register, login, NofBookOnMyOwnStation, AddProfile }
+const getbook = async (req, res) => {
+    console.log(req.query);
+    console.log('getbook')
+    const station = req.query.stand
+    try {
+        const data = await Ride.find({ NearestStation: station, Status: 'pending' })
+        console.log(data);
+        if (!data) {
+            console.log('no data');
+
+            return res.status(400).json(`No Ride Booking at ${station}`)
+        }
+        return res.status(200).json(data)
+    } catch (error) {
+        return res.status(500).json(`internal server error`)
+
+    } 
+}
+
+const getDetails = async (req, res) => {
+    console.log(req.query.id);
+    console.log('getDetails')
+    try {
+        const data = await Ride.findById(req.query.id).populate({
+            path: 'userId', select: [
+                'Name', 'Mobile'
+            ]
+        })
+        console.log(data)
+        return res.status(200).json(data)
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json(`internal server error`)
+    }
+}
+
+const readyTodrive = async (req, res) => {
+    console.log(req.query.id)
+    console.log('ready to drive')
+    console.log(req.id)
+    try {
+        const driver = await Driver.findById(req.id)
+        console.log(driver)
+        if (driver.Status === "onRide") {
+            console.log('pleaSE COMPLETE');
+
+            return res.status(400).json(`please complete Accepted Ride`)
+
+        }
+
+        const update = await Driver.findByIdAndUpdate(
+            req.id,
+            { Status: "onRide" },
+            { returnDocument: "after" }
+        )
+        const data = await Ride.findByIdAndUpdate(req.query.id, {
+            Status: "accepted", driverId: driver._id
+        }, { returnDocument: "after" })
+
+        console.log(data)
+        return res.status(200).json(data)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json(`internal server error`)
+    }
+}
+
+const myRide = async (req, res) => {
+    console.log('my ride')
+    console.log(req.id);
+
+    try {
+        const ride = await Ride.find({ driverId: req.id, Status: "accepted" }).populate({
+            path: 'userId', select: [
+                'Name', 'Mobile'
+            ]
+        })
+        console.log(ride)
+        console.log('my ride')
+        return res.status(200).json(ride)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json(`internal server error`)
+    }
+}
+
+const finishRide = async (req, res) => {
+    console.log('finish')
+    console.log(req.params.id)
+    const id = req.params.id
+    console.log(req.id)
+    try {
+        const data = await Ride.findByIdAndUpdate(id, { Status: "completed" },
+            { returnDocument: "after" })
+        console.log(data)
+        if (!data) {
+            return res.status(400).json('Ride in not fond ')
+
+        }
+        const update = await Driver.findByIdAndUpdate(req.id, {
+            Status: "online"
+        }, { returnDocument: "after" })
+        console.log(update)
+        return res.status(200).json('Ride Completed ')
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json('internal server error')
+    }
+}
+const todayBookings = async (req, res) => {
+    const driver = req.driver
+    console.log(driver.stand)
+    try {
+        const datee = new Date().toLocaleDateString('en-GB');
+        console.log(datee);
+        const data = await Ride.find({ date: datee, Status: "pending", NearestStation: driver.stand })
+        console.log(data)
+      
+        return res.status(200).json(data)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json(`internal server error`)
+    }
+}
+export {
+    register, login, NofBookOnMyOwnStation, AddProfile,
+    getbook, getDetails, readyTodrive, myRide, finishRide, todayBookings
+} 
