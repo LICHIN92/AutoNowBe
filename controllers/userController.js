@@ -100,4 +100,23 @@ const cancelRide = async (req, res) => {
         return res.status(500).json(`internal server error`)
     }
 }
-export { Signup, SignIn, Myride, cancelRide } 
+
+const getDetails = async (req, res) => {
+    console.log('/getDetails')
+    console.log(req.query.id)
+    const id = req.query.id
+    try {
+        const data = await Ride.findById(id).populate({
+            path: "driverId",
+            select: ["Name", "Mobile", "vehicleNumber", "profileImage"]
+        });
+        console.log(data)
+        if (!data) {
+            return res.status(400).json(`your ride is not found`)
+        }
+        return res.status(200).json(data)
+    } catch (error) {
+        return res.status(500).json(`internal server error`)
+    }
+}
+export { Signup, SignIn, Myride, cancelRide, getDetails }  
