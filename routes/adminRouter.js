@@ -1,15 +1,24 @@
 import express from 'express'
-import { addStand, getDriverNumber, stationNumber, usersNumber, verfiedDriver} from '../controllers/adminController.js'
+import {
+    addStand, eachSattion, getDriverNumber, NoofBookingToday, stationNumber,
+    todaystation, usersNumber, verfiedDriver
+} from '../controllers/adminController.js'
 const adminRouter = express.Router()
 
-adminRouter.post('/',addStand)
+adminRouter.post('/', addStand)
 
-adminRouter.get('/getNumDriver',getDriverNumber)
+adminRouter.get('/getNumDriver', getDriverNumber)
 
-adminRouter.get('/getUsers',usersNumber)
+adminRouter.get('/getUsers', usersNumber)
 
-adminRouter.get('/getStation',stationNumber)
+adminRouter.get('/getStation', stationNumber)
 
-adminRouter.get('/verfiedDriver',verfiedDriver)
+adminRouter.get('/verfiedDriver', verfiedDriver)
+
+adminRouter.get('/eachstation', eachSattion)
+ 
+adminRouter.get('/todaystation', todaystation)
+ 
+adminRouter.get('/noofBookingToday', NoofBookingToday)
 export default adminRouter
-
+ 
