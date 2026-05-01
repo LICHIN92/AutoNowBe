@@ -33,9 +33,11 @@ const Signup = async (req, res) => {
         return res.status(200).json({ token: token, message: 'Signup succefully' })
 
     } catch (error) {
+        console.log(error);
+        
         return res.status(500).json(`internal server error`)
 
-    }
+    } 
 }
 
 const SignIn = async (req, res) => {

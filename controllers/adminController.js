@@ -193,9 +193,148 @@ const NoofBookingToday = async (req, res) => {
         return res.status(500).json(`internal server error`)
     }
 }
-export {
-    addStand, getDriverNumber, usersNumber, stationNumber,
-    verfiedDriver, eachSattion, todaystation, NoofBookingToday
+const DriverInStattion = async (req, res) => {
+    console.log('stationsDriver')
+    console.log(req.query.station)
+    const stand = req.query.station
+    try {
+        const data = await Driver.find({ stand: stand, isVerified: true })
+        console.log(data)
+        return res.status(200).json(data)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json(`internal server error`)
+    }
 }
 
+const pendingAtStation = async (req, res) => {
+    console.log(req.query.station)
+    const stand = req.query.station
+    const d = new Date().toISOString().split("T")[0];
+    // console.log(d); // 2026-04-27
+
+    const [year, month, date] = d.split("-");
+    const today = date + "/" + month + "/" + year
+    console.log(today)
+    try {
+        const data = await Ride.find({ NearestStation: stand, date: today, Status: "pending" })
+        console.log(data)
+        return res.status(200).json(data)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json(`internal server error`)
+    }
+}
+
+const verifiedDriversAtStand = async (req, res) => {
+    console.log(req.query.station)
+    const stand = req.query.station
+    try {
+        const data = await Driver.find({ stand: stand, isVerified: true })
+        console.log(data)
+        return res.status(200).json(data)
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json(`internal server error`)
+    }
+}
+
+const stations = async (req, res) => {
+    console.log('stations')
+    try {
+        const data = await Stand.find()
+        console.log(data)
+        return res.status(200).json(data)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json(`internal server error`)
+    }
+}
+const DriverAtEachStation = async (req, res) => {
+    console.log('DriverAtEachStation')
+    // try {
+    //     const data = await Driver.aggregate([
+    //         {
+    //             $match: {
+    //                 isVerified: true
+    //              }
+    //         },
+    //         {
+    //             $group:{
+    //                 _id:"$stand",
+    //                 total:{$sum:1}
+    //             }
+    //         },
+    //         {
+    //             $project:{
+    //                 _id:0,
+    //                 Name:"$Name"
+    //             }
+    //         }
+    //     ])
+    //     console.log(data)
+    // } catch (error) {
+
+    // }
+
+
+    try {
+        const data = await Driver.aggregate([
+            {
+                $match: {
+                    isVerified: true
+                }
+            },
+            {
+                $group: {
+                    _id: "$stand",
+                    total: { $sum: 1 },
+                    drivers: {
+                        $push: {
+                            Name: "$Name",
+                            vehicleNumber: "$vehicleNumber",
+                            profileImage:"$profileImage",
+                            mobile:"$Mobile",
+                            type:"$vehicleType"
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    stand: "$_id",
+                    total: 1,
+                    drivers: 1
+                }
+            }
+        ])
+        console.log(data)
+        return res.status(200).json(data)
+    } catch (error) {
+        console.log(error) 
+        return res.status(500).json(`internal server error`)
+    }
+
+}
+
+const deteleDriver=async(req,res)=>{
+    console.log(req.body)
+    try {
+        const data=await Driver.findOneAndDelete({vehicleNumber: req.body.id})
+        console.log(data)
+        return res.status(200).json(`${req.body.id} is deleted succesfully`)
+
+    } catch (error) {
+         console.log(error) 
+        return res.status(500).json(`internal server error`)
+    }
+}
+export {
+    addStand, getDriverNumber, usersNumber, stationNumber, verifiedDriversAtStand,
+    verfiedDriver, eachSattion, todaystation, NoofBookingToday, DriverInStattion,
+    pendingAtStation, stations, DriverAtEachStation,deteleDriver
+}
+  
 
