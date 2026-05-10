@@ -9,13 +9,20 @@ import adminRouter from './routes/adminRouter.js';
 const app = express()
 connectDb()
 
-app.use(cors(0))
+const allowedOrigin = ['https://heyautonow.vercel.app', 'http://localhost:5173']
+app.use(cors({
+    origin: allowedOrigin,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+// app.use(cors(0))
 app.use(express.json())
 
 app.use('/user', userRouter)
 app.use('/driver', driverRouter)
-app.use('/ride',RideRouter)
-app.use('/admin',adminRouter)
+app.use('/ride', RideRouter)
+app.use('/admin', adminRouter)
 app.listen(process.env.port, () => {
     console.log(`app is running at ${process.env.port}`);
 
