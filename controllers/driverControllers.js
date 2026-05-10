@@ -5,6 +5,8 @@ import Ride from "../models/Ride.js"
 import sharp from "sharp"
 import fs from 'fs'
 import cloudinaryInstance from "../config/Cloudinary.js"
+import { verfiedDriver } from "./adminController.js"
+
 const register = async (req, res) => {
     const { vehicleNumber, Name, Mobile, password, licenceNumber, vehicleType } = req.body
     console.log(req.body)
@@ -66,17 +68,19 @@ const login = async (req, res) => {
     }
 }
 
-const NofBookOnMyOwnStation = async (req, res) => {
+const toadysMyRide = async (req, res) => {
     console.log('NofBookOnMyOwnStation');
     console.log(req.id)
     console.log(req.query)
+    const datee = new Date().toLocaleDateString('en-GB');
+    console.log(datee);
     try {
-        const isVerified = await Driver.findById(req.id)
-        console.log(isVerified.isVerified);
-        // if (!isVerified.isVerified) {
-        //     return res.status(400).json('You are not verified \nPlease contact admin');
-        // }
-        const data = (await Ride.find({ NearestStation: isVerified.stand, Status: "pending" })).length
+        const driver = await Driver.findById(req.id)
+        console.log(driver.isVerified);
+        if (!driver.isVerified) {
+            return res.status(400).json('You are not verified \nPlease contact admin');
+        }
+        const data = (await Ride.find({ driverId: req.id, date: datee })).length
         console.log(data);
         return res.status(200).json(data)
     } catch (error) {
@@ -87,8 +91,10 @@ const NofBookOnMyOwnStation = async (req, res) => {
 
 const AddProfile = async (req, res) => {
     console.log(req.body);
-    console.log(req.id);
+    console.log(req.params);
+    console.log('add profile images')
     const { stand } = req.body
+    const id = req.params.id
     try {
         if (!req.file) {
             return res.status(400).json("No file uploaded")
@@ -101,30 +107,26 @@ const AddProfile = async (req, res) => {
         })
         console.log('uploaded to Cloudinary:', file);
         const pic = file.secure_url
+        console.log(pic) 
+        const data = await Driver.findByIdAndUpdate(id,
+            { stand: stand, profileImage: pic }, { returnDocument: "after" }
+        )
+        console.log('data:-', data);
+        const payload = {
+            Name: data.Name, Mobile: data.Mobile, stand: data.stand, pic: data.profileImage,
+            vehicleNumber: data.vehicleNumber, id: data._id, Verifed: data.isVerified,
+            // Status: date.Status
+        }
+        const token = jwt.sign(payload, process.env.jwt_secret_key)
+        return res.status(200).json({ token: token, message: "Uploded successfully" })
 
-        const data = await Driver.findByIdAndUpdate(req.id,
-            { stand: stand, profileImage: pic }, { new: true })
-
-        console.log(data);
-        // const originalSize = req.file.buffer.length()
-
-        // const compressedBuffer = await sharp(req.file.buffer)
-        //     .resize(500)
-        //     .jpeg({ quality: 60 })
-        //     .toBuffer()
-
-        // const compressedSize = compressedBuffer.length
-
-        // console.log("Original:", (originalSize / 1024).toFixed(2), "KB")
-        // console.log("Compressed:", (compressedSize / 1024).toFixed(2), "KB")
-
-
-
+        // return res.status(200).json('Profile Picture and Stand are updated successfully')
     } catch (error) {
         console.log(error)
         res.status(500).json("Error compressing image")
     }
 }
+
 const getbook = async (req, res) => {
     console.log(req.query);
     console.log('getbook')
@@ -141,7 +143,7 @@ const getbook = async (req, res) => {
     } catch (error) {
         return res.status(500).json(`internal server error`)
 
-    } 
+    }
 }
 
 const getDetails = async (req, res) => {
@@ -240,16 +242,40 @@ const todayBookings = async (req, res) => {
     try {
         const datee = new Date().toLocaleDateString('en-GB');
         console.log(datee);
-        const data = await Ride.find({ date: datee, Status: "pending", NearestStation: driver.stand })
+        const data = await Ride.find({ date: datee, Status: "pending", NearestStation: driver.stand }).sort({ time: 1 })
         console.log(data)
-      
+
         return res.status(200).json(data)
     } catch (error) {
         console.log(error)
         return res.status(500).json(`internal server error`)
     }
 }
+
+const tommarrowsRide = async (req, res) => {
+    console.log('tommarrowsRide')
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const formatted = tomorrow.toISOString().split("T")[0];
+
+    const [yyyy, mm, dd] = formatted.split("-");
+
+    const date = dd.concat('/').concat(mm).concat('/').concat(yyyy)
+    console.log(date);
+
+    try {
+        const data = (await Ride.find({ date: date })).length
+        console.log(data)
+        return res.status(200).json(data)
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json(`internal server error`)
+
+    }
+}
 export {
-    register, login, NofBookOnMyOwnStation, AddProfile,
+    register, login, toadysMyRide, AddProfile, tommarrowsRide,
     getbook, getDetails, readyTodrive, myRide, finishRide, todayBookings
 } 

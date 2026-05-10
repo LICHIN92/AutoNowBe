@@ -24,5 +24,5 @@ const connectDb = async () => {
     process.exit(1); // stop server if DB fails
   }
 };
-
+ 
 export default connectDb;

@@ -1,3 +1,4 @@
+import cloudinaryInstance from "../config/Cloudinary.js";
 import Driver from "../models/Driver.js";
 import Ride from "../models/Ride.js";
 import Stand from "../models/stand.js"
@@ -26,7 +27,7 @@ const addStand = async (req, res) => {
 const getDriverNumber = async (req, res) => {
     console.log('getDriverNumber')
     try {
-        const data = await (await Driver.find()).length
+        const data = await (await Driver.find({ isVerified: true })).length
         console.log(data);
         return res.status(200).json(data)
 
@@ -167,6 +168,7 @@ const todaystation = async (req, res) => {
 
     }
 }
+
 const NoofBookingToday = async (req, res) => {
     console.log('No of Bookings Today')
     const d = new Date().toISOString().split("T")[0];
@@ -193,6 +195,7 @@ const NoofBookingToday = async (req, res) => {
         return res.status(500).json(`internal server error`)
     }
 }
+
 const DriverInStattion = async (req, res) => {
     console.log('stationsDriver')
     console.log(req.query.station)
@@ -251,34 +254,9 @@ const stations = async (req, res) => {
         return res.status(500).json(`internal server error`)
     }
 }
+
 const DriverAtEachStation = async (req, res) => {
     console.log('DriverAtEachStation')
-    // try {
-    //     const data = await Driver.aggregate([
-    //         {
-    //             $match: {
-    //                 isVerified: true
-    //              }
-    //         },
-    //         {
-    //             $group:{
-    //                 _id:"$stand",
-    //                 total:{$sum:1}
-    //             }
-    //         },
-    //         {
-    //             $project:{
-    //                 _id:0,
-    //                 Name:"$Name"
-    //             }
-    //         }
-    //     ])
-    //     console.log(data)
-    // } catch (error) {
-
-    // }
-
-
     try {
         const data = await Driver.aggregate([
             {
@@ -294,9 +272,9 @@ const DriverAtEachStation = async (req, res) => {
                         $push: {
                             Name: "$Name",
                             vehicleNumber: "$vehicleNumber",
-                            profileImage:"$profileImage",
-                            mobile:"$Mobile",
-                            type:"$vehicleType"
+                            profileImage: "$profileImage",
+                            mobile: "$Mobile",
+                            type: "$vehicleType"
                         }
                     }
                 }
@@ -313,28 +291,218 @@ const DriverAtEachStation = async (req, res) => {
         console.log(data)
         return res.status(200).json(data)
     } catch (error) {
-        console.log(error) 
+        console.log(error)
         return res.status(500).json(`internal server error`)
     }
 
 }
 
-const deteleDriver=async(req,res)=>{
+const deteleDriver = async (req, res) => {
     console.log(req.body)
     try {
-        const data=await Driver.findOneAndDelete({vehicleNumber: req.body.id})
+        const data = await Driver.findOneAndDelete({ vehicleNumber: req.body.id })
         console.log(data)
+
+        if (!data) {
+            return res.status(404).json('Driver not found')
+        }
+        if (data.profileImage) {
+            console.log(data.profileImage)
+            await cloudinaryInstance.uploader.destroy(data.profileImage);
+            console.log('deleted profilepic')
+        }
         return res.status(200).json(`${req.body.id} is deleted succesfully`)
 
     } catch (error) {
-         console.log(error) 
+        console.log(error)
         return res.status(500).json(`internal server error`)
     }
 }
+
+const RevenueToday = async (req, res) => {
+    console.log('RevenueToday')
+    const datee = new Date().toLocaleDateString('en-GB');
+    console.log(datee);
+    try {
+        const data = await Ride.find({ Status: "completed", date: datee })
+        console.log(" RevenueToday", data)
+        const revenue = data.length * 15;
+        console.log(revenue)
+        return res.status(200).json(revenue)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json(`internal server error`)
+    }
+}
+
+const revenueBySatnd = async (req, res) => {
+    console.log('revenueBySatnd')
+    const datee = new Date().toLocaleDateString('en-GB');
+    console.log(datee);
+    try {
+        const data = await Ride.aggregate([
+            {
+                $match: {
+                    date: datee,
+                    Status: { $ne: 'pending' }
+                }
+            },
+            {
+                $group: {
+                    _id: "$NearestStation",
+                    total: { $sum: 1 }
+                }
+            }
+        ])
+        console.log(data)
+        return res.status(200).json(data)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json(`internal server error`)
+    }
+}
+
+const driverRevenue = async (req, res) => {
+    console.log('driverRevenue')
+    console.log(req.query)
+    const stand = req.query.stand
+    const datee = new Date().toLocaleDateString('en-GB');
+    console.log(datee);
+    try {
+        const data = await Ride.aggregate([
+            {
+                $match: {
+                    NearestStation: stand,
+                    date: datee,
+                    Status: "completed"
+                }
+            },
+            {
+                $lookup: {
+                    from: "drivers",
+                    localField: "driverId",
+                    foreignField: "_id",
+                    as: "driver"
+                }
+            },
+            {
+                $unwind: "$driver"
+            },
+            {
+                $group: {
+                    _id: "$driverId",
+                    name: { $first: "$driver.Name" },
+                    vehicleNumber: { $first: "$driver.vehicleNumber" },
+                    totalRides: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    driverId: "$_id",
+                    name: 1,
+                    vehicleNumber: 1,   // ✅ add this
+                    totalRides: 1
+                }
+            }
+        ])
+        console.log(data)
+        return res.status(200).json(data)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json(`internal server error`)
+    }
+}
+
+const DeleteStand = async (req, res) => {
+    console.log('DeleteStand')
+    console.log(req.query.stand)
+    try {
+        const data = await Stand.findOneAndDelete({ StandName: req.query.stand })
+        console.log('deleted ');
+
+        return res.status(200).json(`${req.query.stand} is deleted Successfully`)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json('internal server error')
+    }
+}
+
+const NoOfpendingDrivers = async (req, res) => {
+    console.log('pendingDrivers')
+    try {
+        const data = (await Driver.find({ isVerified: false })).length
+        console.log(data)
+        return res.status(200).json(data)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json('internal server error')
+    }
+}
+
+const pendingDriverslist = async (req, res) => {
+    console.log('pendingDriverslist')
+    try {
+        const data = await Driver.find(
+            { isVerified: false }
+        ).select('-Password')
+        data.Password = undefined
+        console.log(data)
+        return res.status(200).json(data)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json('internal server error')
+    }
+}
+
+const deleteNonVerified = async (req, res) => {
+    console.log('deleteNonVerified')
+    console.log(req.params)
+    const id = req.params.id
+    try {
+        const data = await Driver.findById(id)
+        console.log(data, 'deleted')
+        if (!data) {
+            return res.status(404).json(`this driver is not found `)
+        }
+        if (data.profileImage) {
+            console.log(data.profileImage)
+            await cloudinaryInstance.uploader.destroy(data.profileImage);
+            console.log('profileimage is deleted')
+        }
+        const del = await Driver.findByIdAndDelete(id)
+        return res.status(200).json('deleted successfully')
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json('internal server error')
+    }
+}
+
+const verifyingDriver = async (req, res) => {
+    console.log('verifyingDriver')
+    console.log(req.body)
+    const id = req.body.id
+    try {
+        const check = await Driver.findById(id)
+        if (!check) {
+            return res.status(400).json('not found')
+
+        }
+
+        const data = await Driver.findByIdAndUpdate(id, {
+            isVerified: true
+        }, { new: true })
+        console.log(data)
+        return res.status(200).json(`Verified successfully`)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json('internal server error')
+    }
+}
+
 export {
     addStand, getDriverNumber, usersNumber, stationNumber, verifiedDriversAtStand,
     verfiedDriver, eachSattion, todaystation, NoofBookingToday, DriverInStattion,
-    pendingAtStation, stations, DriverAtEachStation,deteleDriver
-}
-  
-
+    pendingAtStation, stations, DriverAtEachStation, deteleDriver, RevenueToday, revenueBySatnd,
+    driverRevenue, DeleteStand, NoOfpendingDrivers, pendingDriverslist, deleteNonVerified, verifyingDriver
+}   

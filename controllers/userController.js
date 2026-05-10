@@ -34,10 +34,10 @@ const Signup = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        
+
         return res.status(500).json(`internal server error`)
 
-    } 
+    }
 }
 
 const SignIn = async (req, res) => {
@@ -79,7 +79,7 @@ const Myride = async (req, res) => {
         const ride = await Ride.find({ userId: id })
         console.log(ride)
         const data = ride.filter((data, i = 'completed') => (
-            data.status !== 'completed'
+            data.Status !== 'completed'
         ))
         console.log('data: ', data);
 
@@ -94,6 +94,15 @@ const cancelRide = async (req, res) => {
     console.log(req.params.id);
 
     try {
+        const ride = await Ride.findById(req.params.id)
+        if (!ride) {
+            return res.status(404).json(`this ride is not found`)
+        }
+        if (ride.Status != 'pending') {
+            console.log('accepted')
+            return res.status(400).json(`This ride is accepted!\nYou can't delete this ride`)
+
+        }
         const action = await Ride.findByIdAndDelete(req.params.id)
         console.log(action)
         return res.status(200).json("Your ride canceled successfully")
