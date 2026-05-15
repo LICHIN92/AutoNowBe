@@ -13,10 +13,14 @@ const userSchema = new mongoose.Schema({
     Password: {
         type: String,
         required: true,
-    }, 
+    },
     Role: {
         type: Boolean,
         // enum: ["user", "driver", "admin"],
+        default: false
+    },
+    fake: {
+        type: Boolean,
         default: false
     }
 },

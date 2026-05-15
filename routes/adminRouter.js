@@ -1,7 +1,8 @@
 import express from 'express'
 import {
-    addStand, deleteNonVerified, DeleteStand, deteleDriver, DriverAtEachStation,
-    DriverInStattion, driverRevenue, eachSattion, getDriverNumber,
+    addStand, blockUser, deleteNonVerified, DeleteStand, deteleDriver, DriverAtEachStation,
+    DriverInStattion, driverRevenue, eachSattion, editDriverData, getBlockeduser, getDriverNumber,
+    getuser,
     NoofBookingToday, NoOfpendingDrivers, pendingAtStation,
     pendingDriverslist, revenueBySatnd, RevenueToday, stationNumber,
     stations, todaystation, usersNumber, verfiedDriver,
@@ -55,4 +56,12 @@ adminRouter.delete('/deleteNonVerified/:id', AdminAuth, deleteNonVerified)
 
 adminRouter.patch('/verifyingDriver', AdminAuth, verifyingDriver)
 
-export default adminRouter
+adminRouter.patch('/editDriverData/:id',AdminAuth,editDriverData)
+
+adminRouter.post('/getuser',AdminAuth,getuser)
+
+adminRouter.patch('/blockUser/:id',AdminAuth,blockUser)
+
+adminRouter.get('/getBlockeduser',getBlockeduser)
+
+export default adminRouter  

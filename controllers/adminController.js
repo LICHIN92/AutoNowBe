@@ -500,9 +500,87 @@ const verifyingDriver = async (req, res) => {
     }
 }
 
+const editDriverData = async (req, res) => {
+    console.log('editDriverData')
+    console.log(req.body)
+    console.log(req.params)
+    const { Name, Mobile, stand, licenseNumber, vehicleNumber, vehicletype } = req.body
+    try {
+        const exist = await Driver.findById(req.params.id)
+        console.log(exist)
+        if (!exist) {
+            return res.status(404).json(`driver is not found`)
+        }
+        const data = await Driver.findByIdAndUpdate(req.params.id, {
+            Name: Name, Mobile: Mobile, licenseNumber: licenseNumber, vehicleNumber: vehicleNumber,
+            stand: stand, vehicleType: vehicletype
+        }, { returnDocument: "after" })
+        console.log(data)
+        return res.status(200).json('updated')
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json('internal server error')
+    }
+}
+
+const getuser = async (req, res) => {
+    console.log('getuser')
+    console.log(req.body)
+    try {
+        const data = await User.findOne({ Mobile: req.body.mobile }).select("-Password")
+        console.log(data)
+        if (!data) {
+            return res.status(404).json(`${req.body.mobile} is not found`)
+        }
+        return res.status(200).json(data)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json('internal server error')
+    }
+}
+
+const blockUser = async (req, res) => {
+    console.log('blockUser')
+    console.log(req.params.id)
+    try {
+        const user = await User.findById(req.params.id)
+        console.log(user)
+        if (user.Role && user.Mobile == '8086200861') {
+            console.log("This is the supreme admin, so can't change this user.");
+            return res.status(403).json(`can't Change this User`)
+        }
+        const change = await User.findByIdAndUpdate(req.params.id, { fake: !user.fake },
+            { new: true })
+        console.log(change)
+        const deleteuserRides = await Ride.deleteMany({ userId: req.params.id })
+        if(change.fake){
+        return res.status(200).json("User is blocked")
+
+        }
+        return res.status(200).json("User is Unblocked")
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json('internal server error')
+    }
+}
+
+const getBlockeduser = async (req, res) => {
+    console.log('getBlockeduser')
+    try {
+        const data = await User.find({ fake: true }).select("-Password")
+        console.log(data)
+        console.log(data.length)
+        return res.status(200).json(data)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json('internal server error')
+    } 
+}
 export {
     addStand, getDriverNumber, usersNumber, stationNumber, verifiedDriversAtStand,
     verfiedDriver, eachSattion, todaystation, NoofBookingToday, DriverInStattion,
     pendingAtStation, stations, DriverAtEachStation, deteleDriver, RevenueToday, revenueBySatnd,
-    driverRevenue, DeleteStand, NoOfpendingDrivers, pendingDriverslist, deleteNonVerified, verifyingDriver
-}   
+    driverRevenue, DeleteStand, NoOfpendingDrivers, pendingDriverslist, deleteNonVerified,
+    verifyingDriver, editDriverData, getuser, blockUser, getBlockeduser
+}    

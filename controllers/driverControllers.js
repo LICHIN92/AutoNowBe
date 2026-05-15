@@ -161,7 +161,7 @@ const getDetails = async (req, res) => {
         console.log(error);
         return res.status(500).json(`internal server error`)
     }
-}
+} 
 
 const readyTodrive = async (req, res) => {
     console.log(req.query.id)
