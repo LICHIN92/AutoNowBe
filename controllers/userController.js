@@ -50,6 +50,7 @@ const SignIn = async (req, res) => {
         const finduser = await User.findOne({ Mobile: Mobile })
 
         if (!finduser) {
+            console.log('no user')
             return res.status(404).json(`Invalid ${Mobile} `)
         }
         console.log(finduser)

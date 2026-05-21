@@ -1,6 +1,8 @@
 import Ride from "../models/Ride.js"
 import Stand from "../models/stand.js";
 import User from "../models/User.js";
+import Visiters from "../models/visiter.js";
+
 
 const booking = async (req, res) => {
     console.log(req.body);
@@ -44,9 +46,43 @@ const booking = async (req, res) => {
 
 const getStand = async (req, res) => {
     try {
+        // const today = new Date().toLocaleDateString("en-us", {
+        //     timeZone: "Asia/Kolkata"
+        // });
+
+        // console.log(today)
+        // const td = await new Visiters({
+        //     date: today
+        // }).save()
+        //   const dd= await Visit.find(
+        //       { date: today },
+        //     //   { $inc: { count: 1 } },
+        //       { upsert: true }
+        //     );
+        // console.log(dd);
+
+ // ✅ Proper date format
+        const today = new Date().toLocaleDateString("en-us", {
+            timeZone: "Asia/Kolkata"
+        });
+
+        console.log(today);
+
+        // ✅ Correct logic: increment or create
+        const visitData = await Visiters.findOneAndUpdate(
+            { date: today },          // find today's record
+            { $inc: { count: 1 } },   // increment count
+            { upsert: true, after: true }
+        );
+
+        console.log(visitData);
+
+
         const data = await Stand.find()
         return res.status(200).json(data)
+
     } catch (error) {
+        console.log(error)
         return res.status(500).json(`internal server error`)
 
     }

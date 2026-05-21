@@ -6,8 +6,17 @@ import cors from 'cors'
 import driverRouter from './routes/driverRouter.js';
 import RideRouter from './routes/rideRouter.js';
 import adminRouter from './routes/adminRouter.js';
+import helmet from 'helmet';
+
+import dns from 'dns'
+dns.setServers([
+    '1.1.1.1',
+    '8.8.8.8'
+])
 const app = express()
 connectDb()
+
+app.use(helmet())
 
 const allowedOrigin = ['https://heyautonow.vercel.app', 'http://localhost:5173']
 app.use(cors({
