@@ -6,7 +6,8 @@ import {
     NoofBookingToday, NoOfpendingDrivers, pendingAtStation,
     pendingDriverslist, revenueBySatnd, RevenueToday, stationNumber,
     stations, todaystation, usersNumber, verfiedDriver,
-    verifiedDriversAtStand, verifyingDriver
+    verifiedDriversAtStand, verifyingDriver,
+    visiters
 } from '../controllers/adminController.js'
 import { AdminAuth } from '../middleware/adminAuth.js'
 
@@ -63,5 +64,7 @@ adminRouter.post('/getuser',AdminAuth,getuser)
 adminRouter.patch('/blockUser/:id',AdminAuth,blockUser)
 
 adminRouter.get('/getBlockeduser',getBlockeduser)
+
+adminRouter.get('/getVisiters',visiters)
 
 export default adminRouter  

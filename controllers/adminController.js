@@ -3,6 +3,7 @@ import Driver from "../models/Driver.js";
 import Ride from "../models/Ride.js";
 import Stand from "../models/stand.js"
 import User from "../models/User.js";
+import Visiters from "../models/visiter.js";
 
 const addStand = async (req, res) => {
     const { standName } = req.body
@@ -553,8 +554,8 @@ const blockUser = async (req, res) => {
             { new: true })
         console.log(change)
         const deleteuserRides = await Ride.deleteMany({ userId: req.params.id })
-        if(change.fake){
-        return res.status(200).json("User is blocked")
+        if (change.fake) {
+            return res.status(200).json("User is blocked")
 
         }
         return res.status(200).json("User is Unblocked")
@@ -575,12 +576,28 @@ const getBlockeduser = async (req, res) => {
     } catch (error) {
         console.log(error)
         return res.status(500).json('internal server error')
-    } 
+    }
 }
+
+const visiters = async (req, res) => {
+    console.log('visiters')
+    try {
+        const today = new Date().toLocaleDateString("en-us", {
+            timeZone: "Asia/Kolkata"
+        });
+        const data = await Visiters.findOne({ date: today })
+        return res.status(200).json(data)
+        console.log(data)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json('internal server error')
+    }
+}
+
 export {
     addStand, getDriverNumber, usersNumber, stationNumber, verifiedDriversAtStand,
     verfiedDriver, eachSattion, todaystation, NoofBookingToday, DriverInStattion,
     pendingAtStation, stations, DriverAtEachStation, deteleDriver, RevenueToday, revenueBySatnd,
     driverRevenue, DeleteStand, NoOfpendingDrivers, pendingDriverslist, deleteNonVerified,
-    verifyingDriver, editDriverData, getuser, blockUser, getBlockeduser
-}    
+    verifyingDriver, editDriverData, getuser, blockUser, getBlockeduser,visiters
+}      
