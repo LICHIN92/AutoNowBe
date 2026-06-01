@@ -5,4 +5,4 @@ const RideRouter=express.Router()
 
 RideRouter.post('/',booking)
 RideRouter.get('/getStand',getStand)
-export default RideRouter    
+export default RideRouter      

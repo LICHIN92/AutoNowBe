@@ -594,10 +594,36 @@ const visiters = async (req, res) => {
     }
 }
 
+const changeStand = async (req, res) => {
+    console.log(req.body)
+
+    const { newstand, vehicleNumber } = req.body
+
+    try {
+        const updatedDriver = await Driver.findOneAndUpdate(
+            { vehicleNumber: vehicleNumber },
+            { $set: { stand: newstand } },
+            { new: true } // ✅ returns updated doc
+        )
+
+        if (!updatedDriver) {
+            return res.status(404).json('Driver not found')
+        }
+
+        console.log(updatedDriver)
+
+        return res.status(200).json("Stand updated successfully")
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json('Internal server error')
+    }
+}
+
 export {
     addStand, getDriverNumber, usersNumber, stationNumber, verifiedDriversAtStand,
     verfiedDriver, eachSattion, todaystation, NoofBookingToday, DriverInStattion,
     pendingAtStation, stations, DriverAtEachStation, deteleDriver, RevenueToday, revenueBySatnd,
     driverRevenue, DeleteStand, NoOfpendingDrivers, pendingDriverslist, deleteNonVerified,
-    verifyingDriver, editDriverData, getuser, blockUser, getBlockeduser,visiters
+    verifyingDriver, editDriverData, getuser, blockUser, getBlockeduser, visiters, changeStand
 }      
