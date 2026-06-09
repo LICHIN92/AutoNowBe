@@ -1,6 +1,6 @@
 import express from 'express'
 import {
-    addStand, blockUser, changeStand, deleteNonVerified, DeleteStand, deteleDriver, DriverAtEachStation,
+    addStand, blockUser, bookperday, changeStand, deleteNonVerified, DeleteStand, deteleDriver, DriverAtEachStation,
     DriverInStattion, driverRevenue, eachSattion, editDriverData, getBlockeduser, getDriverNumber,
     getuser,
     NoofBookingToday, NoOfpendingDrivers, pendingAtStation,
@@ -68,5 +68,7 @@ adminRouter.get('/getBlockeduser',getBlockeduser)
 adminRouter.get('/getVisiters',visiters)
 
 adminRouter.patch('/changeStand',changeStand)
+
+adminRouter.get('/bookperday',bookperday)
 
 export default adminRouter  

@@ -620,10 +620,64 @@ const changeStand = async (req, res) => {
     }
 }
 
+const bookperday = async (req, res) => {
+    console.log('bookperday');
+    console.log(req.query.station);
+    const datee = new Date().toLocaleDateString('en-GB');
+    console.log(datee);
+
+    try {
+        const uu = await Ride.find({ date: datee, NearestStation: req.query.station })
+        console.log(uu);
+
+        const data = await Ride.aggregate([
+            {
+                $match: {
+                    NearestStation: req.query.station,
+                    date: datee
+                }
+            },
+            {
+                $project: {
+                    hour: {
+                        $arrayElemAt: [
+                            { $split: ["$time", ":"] },
+                            0
+                        ]
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: "$hour",
+                    bookings: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    hour: "$_id",
+                    bookings: 1
+                }
+            },
+            {
+                $sort: {
+                    hour: 1
+                }
+            }
+        ]);
+        console.log(data)
+        return res.status(200).json(data  )
+    } catch (error) {
+        console.log(error);
+
+    }
+}
+
 export {
     addStand, getDriverNumber, usersNumber, stationNumber, verifiedDriversAtStand,
     verfiedDriver, eachSattion, todaystation, NoofBookingToday, DriverInStattion,
     pendingAtStation, stations, DriverAtEachStation, deteleDriver, RevenueToday, revenueBySatnd,
     driverRevenue, DeleteStand, NoOfpendingDrivers, pendingDriverslist, deleteNonVerified,
-    verifyingDriver, editDriverData, getuser, blockUser, getBlockeduser, visiters, changeStand
+    verifyingDriver, editDriverData, getuser, blockUser, getBlockeduser, visiters, changeStand, bookperday
 }      
