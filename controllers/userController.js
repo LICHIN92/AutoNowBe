@@ -131,4 +131,32 @@ const getDetails = async (req, res) => {
         return res.status(500).json(`internal server error`)
     }
 }
-export { Signup, SignIn, Myride, cancelRide, getDetails }  
+
+const forgotPassword = async (req, res) => {
+    console.log('forgot Password');
+    console.log(req.body);
+    const { Mobile, Password } = req.body
+    try {
+        const find = await User.find({ Mobile: Mobile })
+        console.log(find);
+        if (!find) {
+            return res.status(404).json(`${Mobile} is not found`)
+        }
+        const SaltRound = 10
+        const hashedPassword = await bcrypt.hash(Password, SaltRound)
+        console.log(hashedPassword);
+        const updatedUser = await User.findOneAndUpdate(
+            { Mobile: Mobile },
+            { Password: hashedPassword },
+            { return: true }
+        );
+        console.log(updatedUser)
+        return res.status(200).json(
+            "Password changed successfully"
+        );
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json(`internal server error`)
+    }
+}
+export { Signup, SignIn, Myride, cancelRide, getDetails, forgotPassword }  
